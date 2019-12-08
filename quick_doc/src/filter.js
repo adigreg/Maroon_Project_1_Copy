@@ -13,19 +13,20 @@ import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import MailIcon from '@material-ui/icons/Mail';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import Checkbox from '@material-ui/core/Checkbox';
 import Input from '@material-ui/core/Input';
-import {FormControl, CardHeader, CardContent, CardMedia} from '@material-ui/core';
+import {FormControl, CardHeader, CardContent, CardMedia, Container} from '@material-ui/core';
 import Card from '@material-ui/core/Card';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+// import Ratings from 'react-ratings-declarative';
+import Rater from 'react-rater'
+import 'react-rater/lib/react-rater.css'
+import logo from './Images/insurance.png'
 
 
 
@@ -79,6 +80,18 @@ const useStyles = makeStyles(theme => ({
       }),
       marginLeft: -drawerWidth,
     },
+    wrong: {
+      flexGrow: 1,
+      marginTop: 70,
+      padding: theme.spacing(3),
+      marginLeft: 100,
+    },
+    goback_button: {
+      flexGrow: 1,
+      // marginTop: 70,
+      // padding: theme.spacing(3),
+      marginLeft: 200,
+    },
     contentShift: {
       transition: theme.transitions.create('margin', {
         easing: theme.transitions.easing.easeOut,
@@ -101,6 +114,22 @@ const useStyles = makeStyles(theme => ({
       noLabel: {
         marginTop: theme.spacing(3),
       },
+      title: {
+        flexGrow: 1,
+        marginTop: 15,
+        marginBottom: 15,
+        fontSize: 25,
+      },
+      logo: {
+        width: 25,
+        height: 25,
+        marginLeft: 3,
+        marginBottom: -3,
+      },
+      locationheader: {
+        marginTop: 100,
+        marginBottom: 10
+      }
   }));
 
 const ITEM_HEIGHT = 48;
@@ -116,9 +145,10 @@ const MenuProps = {
 
 const doctorCardStyles = makeStyles(theme => ({
   grid: {
-    marginLeft: 250,
-    marginTop: 75,
+    marginTop: 7,   
     paddingLeft: 60,
+    paddingRight: 60,
+    marginLeft: 245,
   },
   card:{
     display:"flex",
@@ -126,28 +156,41 @@ const doctorCardStyles = makeStyles(theme => ({
     alignItems: 'center',
     flexDirection: 'column',
     width: 450,
-    height: 250,
-    paddingTop: 20,
+    height: 300,
+    paddingTop: 30,
+    paddingBottom: 20,
   },
   content:{
     display:"flex",
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',
+  },
+  button: {
+    marginTop: 7
   }
 }));
 
-const DoctorCards = ({doctors, settingdoctor, pagestate}) => {
+const DoctorCards = ({doctors, settingdoctor, pagestate, reviewstate}) => {
     const classes = doctorCardStyles();
+    console.log(reviewstate.review)
+    const getname = (doctor) => {
+      return doctor.profile.first_name + " " + doctor.profile.last_name
+    }
     return(
-        <Grid container spacing={2} className={classes.grid}>       
+        <Grid container spacing={3} className={classes.grid}>       
         {doctors.map(doctor =>
           (<Grid item xs={6}>
             <Card className={classes.card}>
               <h1><strong>{doctor.profile.first_name + " " + doctor.profile.last_name}</strong></h1>
               <CardMedia><img src={doctor.profile.image_url}></img></CardMedia>
-              <CardContent className={classes.content}>Located in {doctor.practices[0].visit_address.city + ", " + doctor.practices[0].visit_address.state}
-                <Button variant="contained" color="primary" size="large" onClick={function(event){settingdoctor.setdoc(doctor);pagestate.setpage(3)}}>View Doctor Bio</Button>
+              <CardContent className={classes.content}>
+              {
+                Object.keys(reviewstate.review).includes(getname(doctor)) ? <Rater  rating={reviewstate.review[getname(doctor)]["totalrating"]/reviewstate.review[getname(doctor)]["totalcount"]} interactive={false} /> : <Typography> No rating </Typography>
+              }
+                Located in {doctor.practices[0].visit_address.city + ", " + doctor.practices[0].visit_address.state}
+          
+                <Button variant="contained" color="primary" size="large" onClick={function(event){settingdoctor.setdoc(doctor);pagestate.setpage(3)}} className={classes.button}>View Doctor Bio</Button>
               </CardContent>
             </Card>
         </Grid>))}
@@ -155,22 +198,14 @@ const DoctorCards = ({doctors, settingdoctor, pagestate}) => {
     )
 }
 
-export const FilterMenu =({pagestate,doctors,settingdoctor})=>{
+export const FilterMenu =({pagestate,jsonstate,settingdoctor,reviewstate, addressprop})=>{
 
+// db.child("doctors").child("Nirali Patel").once('value').then(function(snapshot) {
+//   const val = snapshot.val() && snapshot.val();
+// })
+  const doctors = jsonstate.json;
   const classes = useStyles();
   const theme = useTheme();
-  const names = [
-    'Oliver Hansen',
-    'Van Henry',
-    'April Tucker',
-    'Ralph Hubbard',
-    'Omar Alexander',
-    'Carlos Abbott',
-    'Miriam Wagner',
-    'Bradley Wilkerson',
-    'Virginia Andrews',
-    'Kelly Snyder',
-  ];
   const [open, setOpen] = React.useState(false);
 
   const handleDrawerOpen = () => {
@@ -186,16 +221,7 @@ export const FilterMenu =({pagestate,doctors,settingdoctor})=>{
   const handleSpecChange = event => {
     setSpec(event.target.value);
   };
-//   const handleSpecChangeMultiple = event => {
-//     const { options } = event.target;
-//     const value = [];
-//     for (let i = 0, l = options.length; i < l; i += 1) {
-//       if (options[i].selected) {
-//         value.push(options[i].value);
-//       }
-//     }
-//     setSpec(value);
-//   };
+
   const [insu, setInsu] = React.useState([]);
   const handleInsuChange = event => {
     setInsu(event.target.value);
@@ -221,8 +247,6 @@ const getInsuList =() =>{
 }
 const specialties_list = getSpecList()
 const insurance_list = getInsuList()
-console.log(specialties_list)
-console.log(insurance_list)
 
 const matchInsu = (doctor) =>{
     var flag = 0
@@ -264,16 +288,50 @@ const doctorSelector = () =>{
     }
     
 }
+  if (doctors.length === 0)
+  {
+    return (
+      <div className={classes.root}>
+        <Container>
+        <AppBar
+        position="fixed"
+        className={clsx(classes.appBar, {
+          [classes.appBarShift]: open,
+        })}>
+          <Toolbar>
+          <Typography variant="h6" className={classes.title} align="center">
+            QuickDoc
+            <img src={logo} className={classes.logo}/>
+          </Typography>
+          </Toolbar>
+        </AppBar>
 
+
+
+        <div className={classes.wrong}>
+          <Typography >
+          <font size="5"  color="red">
+           <strong> Please choose a legal location from the dropbox </strong>
+            </font>
+          </Typography>
+        </div>
+        <div className={classes.goback_button}>
+        <Button variant="contained" color="primary" size="large" onClick={function(event){jsonstate.setjson([]);pagestate.setpage(1);}} style={{marginBottom: 10}}>Go Back</Button>
+        </div>
+        </Container>
+        
+      </div>
+    )
+  }
+  else{
   return (
     <div className={classes.root}>
-      <CssBaseline />
+      <Container>
       <AppBar
         position="fixed"
         className={clsx(classes.appBar, {
           [classes.appBarShift]: open,
-        })}
-      >
+        })}>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -284,8 +342,9 @@ const doctorSelector = () =>{
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap>
-            Quick Doc
+          <Typography variant="h6" className={classes.title} align="center">
+            QuickDoc
+            <img src={logo} className={classes.logo}/>
           </Typography>
         </Toolbar>
       </AppBar>
@@ -307,8 +366,6 @@ const doctorSelector = () =>{
         <List>
 
             <ListItem key='specialties'>
-              {/* <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon> */}
-              {/* <ListItemText primary={text} /> */}
                 <FormControl className={classes.formControl}>
                     <InputLabel htmlFor="select-multiple-checkbox">specialties</InputLabel>
                     <Select
@@ -330,9 +387,6 @@ const doctorSelector = () =>{
             </ListItem>
             <Divider/>
             <ListItem key='insurance'>
-              {/* <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon> */}
-              {/* <ListItemText primary={text} /> */}
-
                 <FormControl className={classes.formControl}>
                     <InputLabel htmlFor="select-multiple-checkbox">Insurance</InputLabel>
                     <Select
@@ -352,17 +406,21 @@ const doctorSelector = () =>{
                     </Select>
                 </FormControl>
             </ListItem>
-          {/* ))} */}
         </List>
         <Divider />
       </Drawer>
+      <Typography variant="h6" className={classes.locationheader}>Doctors near <strong>{addressprop.address}</strong>:</Typography>
+      <Divider />
       <main
         className={clsx(classes.content, {
           [classes.contentShift]: open,
         })}
       >
-          <DoctorCards doctors = {doctorSelector()} settingdoctor = {settingdoctor} pagestate ={pagestate} cardStyle={classes.card} />
+          <DoctorCards doctors = {doctorSelector()} settingdoctor = {settingdoctor} pagestate ={pagestate} reviewstate = {reviewstate}/>
       </main>
+      <Button variant="contained" color="primary" size="large" onClick={function(event){jsonstate.setjson([]);pagestate.setpage(1);}} style={{marginBottom: 10}}>Go Back</Button>
+      </Container>
     </div>
   );
+}
 }

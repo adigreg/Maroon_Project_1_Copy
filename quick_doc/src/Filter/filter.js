@@ -211,7 +211,7 @@ const [personName, setPersonName] = React.useState([]);
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap>
-            Quick Doc
+            QuickDoc
           </Typography>
         </Toolbar>
       </AppBar>
